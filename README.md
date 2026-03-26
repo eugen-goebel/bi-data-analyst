@@ -54,7 +54,7 @@ CSV / Excel Input
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/eugengoebel/bi-data-analyst.git
+git clone https://github.com/eugen-goebel/bi-data-analyst.git
 cd bi-data-analyst
 
 # 2. Install dependencies
