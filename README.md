@@ -2,6 +2,12 @@
 
 An AI-powered multi-agent system that transforms raw business data (CSV/Excel) into comprehensive intelligence reports with embedded charts, statistical analysis, and actionable recommendations.
 
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![Tests](https://img.shields.io/badge/Tests-78_passed-brightgreen)
+![pandas](https://img.shields.io/badge/pandas-2.0+-150458)
+![matplotlib](https://img.shields.io/badge/matplotlib-3.7+-11557c)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 ---
 
 ## Architecture
