@@ -1,6 +1,6 @@
 # BI Data Analyst Agent
 
-An AI-powered multi-agent system that transforms raw business data (CSV/Excel) into comprehensive intelligence reports with embedded charts, statistical analysis, and actionable recommendations.
+An AI-powered multi-agent system that transforms raw business data (CSV/Excel) into intelligence reports with embedded charts, statistical analysis, and actionable recommendations.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![Tests](https://img.shields.io/badge/Tests-78_passed-brightgreen)
