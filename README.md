@@ -2,6 +2,7 @@
 
 An AI-powered multi-agent system that transforms raw business data (CSV/Excel) into intelligence reports with embedded charts, statistical analysis, and actionable recommendations.
 
+![CI](https://github.com/eugen-goebel/bi-data-analyst/actions/workflows/tests.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![Tests](https://img.shields.io/badge/Tests-78_passed-brightgreen)
 ![pandas](https://img.shields.io/badge/pandas-2.0+-150458)
