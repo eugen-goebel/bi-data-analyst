@@ -14,6 +14,7 @@ from agents.pattern_agent import PatternAgent
 from agents.visualization_agent import VisualizationAgent
 from agents.insight_agent import InsightAgent, InsightResult
 from utils.report_generator import generate_docx_report
+from utils.csv_exporter import export_analysis_csv
 
 
 class BIAnalysisOrchestrator:
@@ -41,6 +42,8 @@ class BIAnalysisOrchestrator:
         self._pattern_agent = PatternAgent()
         self._viz_agent = VisualizationAgent()
         self._insight_agent = InsightAgent(self.client, model=model)
+        self._last_summary = None
+        self._last_patterns = None
 
     def run(self, filepath: str) -> str:
         """
@@ -55,6 +58,7 @@ class BIAnalysisOrchestrator:
         # Phase 1: Load data
         print(f"\n[1/5] Loading and validating data file ...")
         summary, df = self._data_loader.load(filepath)
+        self._last_summary = summary
         print(f"      Loaded: {summary.row_count:,} rows, {summary.column_count} columns")
         print(f"      Date range: {summary.date_range or 'N/A'}")
         print(f"      Data quality: {summary.data_quality_score}/100")
@@ -62,6 +66,7 @@ class BIAnalysisOrchestrator:
         # Phase 2: Pattern detection
         print(f"\n[2/5] Detecting patterns — trends, correlations, outliers ...")
         patterns = self._pattern_agent.analyze(df, summary)
+        self._last_patterns = patterns
         print(f"      {patterns.summary}")
 
         # Phase 3: Visualization
@@ -89,6 +94,27 @@ class BIAnalysisOrchestrator:
 
         return report_path
 
+    def export_csv(self, insights: InsightResult | None = None) -> str:
+        """
+        Export the last analysis results as CSV.
+
+        Args:
+            insights: InsightResult to export. If None, requires a prior run().
+
+        Returns:
+            Absolute path to the generated .csv file
+        """
+        if self._last_summary is None or self._last_patterns is None:
+            raise RuntimeError("Run the analysis pipeline before exporting CSV")
+        if insights is None:
+            raise ValueError("InsightResult is required for CSV export")
+        return export_analysis_csv(
+            summary=self._last_summary,
+            patterns=self._last_patterns,
+            insights=insights,
+            output_dir=self.output_dir,
+        )
+
     def run_with_mock(
         self, filepath: str, mock_insights: InsightResult
     ) -> str:
@@ -101,6 +127,7 @@ class BIAnalysisOrchestrator:
         # Phase 1: Load data (real)
         print(f"\n[1/5] Loading and validating data file ...")
         summary, df = self._data_loader.load(filepath)
+        self._last_summary = summary
         print(f"      Loaded: {summary.row_count:,} rows, {summary.column_count} columns")
         print(f"      Date range: {summary.date_range or 'N/A'}")
         print(f"      Data quality: {summary.data_quality_score}/100")
@@ -108,6 +135,7 @@ class BIAnalysisOrchestrator:
         # Phase 2: Pattern detection (real)
         print(f"\n[2/5] Detecting patterns — trends, correlations, outliers ...")
         patterns = self._pattern_agent.analyze(df, summary)
+        self._last_patterns = patterns
         print(f"      {patterns.summary}")
 
         # Phase 3: Visualization (real)
