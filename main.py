@@ -39,6 +39,11 @@ def main():
         default="claude-opus-4-6",
         help="Model to use for insight generation (default: claude-opus-4-6)",
     )
+    parser.add_argument(
+        "--csv",
+        action="store_true",
+        help="Export analysis results as CSV in addition to DOCX",
+    )
 
     args = parser.parse_args()
 
@@ -56,6 +61,11 @@ def main():
 
         orch = BIAnalysisOrchestrator(output_dir=args.output)
         report_path = orch.run_with_mock(sample_path, MOCK_INSIGHTS)
+
+        if args.csv:
+            from utils.csv_exporter import export_analysis_csv
+            csv_path = orch.export_csv(MOCK_INSIGHTS)
+            print(f"\n  CSV export: {csv_path}")
 
         print("\n" + "=" * 60)
         print(f"  Report ready: {report_path}")
@@ -91,6 +101,10 @@ def main():
             output_dir=args.output,
         )
         report_path = orch.run(args.filepath)
+
+        if args.csv:
+            csv_path = orch.export_csv()
+            print(f"\n  CSV export: {csv_path}")
 
         print("\n" + "=" * 60)
         print(f"  Report ready: {report_path}")
