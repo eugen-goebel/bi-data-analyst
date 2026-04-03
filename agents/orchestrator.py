@@ -45,19 +45,21 @@ class BIAnalysisOrchestrator:
         self._last_summary = None
         self._last_patterns = None
 
-    def run(self, filepath: str) -> str:
+    def run(self, filepath: str, sheet_name: str | None = None) -> str:
         """
         Execute the full 5-phase pipeline.
 
         Args:
             filepath: Path to CSV or Excel file
+            sheet_name: For Excel files, the specific sheet to analyze
 
         Returns:
             Absolute path to the generated DOCX report
         """
         # Phase 1: Load data
-        print(f"\n[1/5] Loading and validating data file ...")
-        summary, df = self._data_loader.load(filepath)
+        sheet_info = f" (sheet: {sheet_name})" if sheet_name else ""
+        print(f"\n[1/5] Loading and validating data file{sheet_info} ...")
+        summary, df = self._data_loader.load(filepath, sheet_name=sheet_name)
         self._last_summary = summary
         print(f"      Loaded: {summary.row_count:,} rows, {summary.column_count} columns")
         print(f"      Date range: {summary.date_range or 'N/A'}")
@@ -114,6 +116,29 @@ class BIAnalysisOrchestrator:
             insights=insights,
             output_dir=self.output_dir,
         )
+
+    def run_all_sheets(self, filepath: str) -> list[str]:
+        """
+        Run the pipeline on every sheet in an Excel workbook.
+
+        Args:
+            filepath: Path to an Excel file
+
+        Returns:
+            List of report paths, one per non-empty sheet
+        """
+        sheets = self._data_loader.list_sheets(filepath)
+        report_paths = []
+        for i, sheet in enumerate(sheets, 1):
+            print(f"\n{'─' * 60}")
+            print(f"  Sheet {i}/{len(sheets)}: {sheet}")
+            print(f"{'─' * 60}")
+            try:
+                path = self.run(filepath, sheet_name=sheet)
+                report_paths.append(path)
+            except ValueError as e:
+                print(f"      Skipping sheet '{sheet}': {e}")
+        return report_paths
 
     def run_with_mock(
         self, filepath: str, mock_insights: InsightResult
