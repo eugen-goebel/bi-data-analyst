@@ -40,6 +40,7 @@ class NumericStats(BaseModel):
 class DataSummary(BaseModel):
     """Complete summary of a loaded dataset."""
     filename: str = Field(description="Original filename")
+    sheet_name: str | None = Field(default=None, description="Sheet name for Excel files")
     row_count: int = Field(description="Total number of rows")
     column_count: int = Field(description="Total number of columns")
     columns: list[ColumnProfile] = Field(description="Profile of each column")
@@ -60,12 +61,65 @@ class DataLoaderAgent:
 
     SUPPORTED_EXTENSIONS = (".csv", ".xlsx", ".xls")
 
-    def load(self, filepath: str) -> tuple[DataSummary, pd.DataFrame]:
+    def list_sheets(self, filepath: str) -> list[str]:
+        """
+        List all sheet names in an Excel file.
+
+        Args:
+            filepath: Path to an Excel file
+
+        Returns:
+            List of sheet names
+
+        Raises:
+            FileNotFoundError: If the file does not exist
+            ValueError: If the file is not an Excel format
+        """
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"File not found: {filepath}")
+
+        ext = os.path.splitext(filepath)[1].lower()
+        if ext not in (".xlsx", ".xls"):
+            raise ValueError(f"Sheet listing is only supported for Excel files, got: {ext}")
+
+        xls = pd.ExcelFile(filepath)
+        return xls.sheet_names
+
+    def load_all_sheets(self, filepath: str) -> list[tuple[DataSummary, pd.DataFrame]]:
+        """
+        Load and profile all sheets from an Excel file.
+
+        Args:
+            filepath: Path to an Excel file
+
+        Returns:
+            List of (DataSummary, DataFrame) tuples, one per non-empty sheet
+
+        Raises:
+            FileNotFoundError: If the file does not exist
+            ValueError: If the file is not Excel or all sheets are empty
+        """
+        sheets = self.list_sheets(filepath)
+        results = []
+        for sheet in sheets:
+            try:
+                result = self.load(filepath, sheet_name=sheet)
+                results.append(result)
+            except ValueError:
+                continue  # skip empty sheets
+
+        if not results:
+            raise ValueError("All sheets in the workbook are empty or have fewer than 2 columns.")
+
+        return results
+
+    def load(self, filepath: str, sheet_name: str | None = None) -> tuple[DataSummary, pd.DataFrame]:
         """
         Load and profile a data file.
 
         Args:
             filepath: Path to a CSV or Excel file
+            sheet_name: For Excel files, the sheet to load. If None, loads the first sheet.
 
         Returns:
             Tuple of (DataSummary, pandas DataFrame)
@@ -85,7 +139,7 @@ class DataLoaderAgent:
         if ext == ".csv":
             df = pd.read_csv(filepath)
         else:
-            df = pd.read_excel(filepath)
+            df = pd.read_excel(filepath, sheet_name=sheet_name or 0)
 
         if df.empty or len(df.columns) < 2:
             raise ValueError("Dataset is empty or has fewer than 2 columns.")
@@ -146,8 +200,11 @@ class DataLoaderAgent:
         completeness = (1 - null_cells / total_cells) * 100 if total_cells > 0 else 0
         data_quality_score = round(min(completeness, 100), 1)
 
+        resolved_sheet = sheet_name if ext in (".xlsx", ".xls") else None
+
         summary = DataSummary(
             filename=os.path.basename(filepath),
+            sheet_name=resolved_sheet,
             row_count=len(df),
             column_count=len(df.columns),
             columns=columns,
