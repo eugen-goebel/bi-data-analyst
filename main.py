@@ -44,6 +44,22 @@ def main():
         action="store_true",
         help="Export analysis results as CSV in addition to DOCX",
     )
+    parser.add_argument(
+        "--sheet",
+        type=str,
+        default=None,
+        help="Name of the Excel sheet to analyze (default: first sheet)",
+    )
+    parser.add_argument(
+        "--all-sheets",
+        action="store_true",
+        help="Analyze all sheets in an Excel workbook",
+    )
+    parser.add_argument(
+        "--list-sheets",
+        action="store_true",
+        help="List available sheet names in an Excel file and exit",
+    )
 
     args = parser.parse_args()
 
@@ -81,6 +97,20 @@ def main():
             print(f"Error: File not found: {args.filepath}")
             sys.exit(1)
 
+        # Sheet listing mode
+        if args.list_sheets:
+            from agents.data_loader import DataLoaderAgent
+            loader = DataLoaderAgent()
+            try:
+                sheets = loader.list_sheets(args.filepath)
+                print(f"Sheets in {os.path.basename(args.filepath)}:")
+                for i, name in enumerate(sheets, 1):
+                    print(f"  {i}. {name}")
+            except ValueError as e:
+                print(f"Error: {e}")
+                sys.exit(1)
+            return
+
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             print("Error: ANTHROPIC_API_KEY not set.")
@@ -100,15 +130,23 @@ def main():
             model=args.model,
             output_dir=args.output,
         )
-        report_path = orch.run(args.filepath)
 
-        if args.csv:
-            csv_path = orch.export_csv()
-            print(f"\n  CSV export: {csv_path}")
+        if args.all_sheets:
+            report_paths = orch.run_all_sheets(args.filepath)
+            print("\n" + "=" * 60)
+            for rp in report_paths:
+                print(f"  Report ready: {rp}")
+            print("=" * 60)
+        else:
+            report_path = orch.run(args.filepath, sheet_name=args.sheet)
 
-        print("\n" + "=" * 60)
-        print(f"  Report ready: {report_path}")
-        print("=" * 60)
+            if args.csv:
+                csv_path = orch.export_csv()
+                print(f"\n  CSV export: {csv_path}")
+
+            print("\n" + "=" * 60)
+            print(f"  Report ready: {report_path}")
+            print("=" * 60)
 
 
 if __name__ == "__main__":
