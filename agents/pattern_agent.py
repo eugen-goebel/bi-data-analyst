@@ -51,12 +51,34 @@ class SeasonalPattern(BaseModel):
     description: str
 
 
+class ABCContributor(BaseModel):
+    """A single segment in an ABC/Pareto analysis."""
+    label: str = Field(description="Segment label, e.g. 'North'")
+    value: float = Field(description="Contribution in the chosen metric")
+    share_pct: float = Field(description="Share of the total in percent")
+    cumulative_pct: float = Field(description="Running cumulative share in percent")
+    abc_class: Literal["A", "B", "C"] = Field(description="Pareto class")
+
+
+class ABCAnalysis(BaseModel):
+    """Pareto / 80-20 split for one categorical dimension over one numeric metric."""
+    dimension: str = Field(description="Categorical column grouped by")
+    metric: str = Field(description="Numeric column aggregated")
+    total: float = Field(description="Total sum of the metric across all segments")
+    contributors: list[ABCContributor]
+    a_count: int = Field(description="Segments in the 80% bucket")
+    b_count: int = Field(description="Segments in the next 15%")
+    c_count: int = Field(description="Segments in the last 5%")
+    summary: str
+
+
 class PatternAnalysis(BaseModel):
     """Complete pattern analysis results."""
     trends: list[TrendResult]
     correlations: list[CorrelationPair]
     outliers: list[Outlier]
     seasonal_patterns: list[SeasonalPattern]
+    abc_analyses: list[ABCAnalysis] = Field(default_factory=list)
     summary: str = Field(description="Overview of key patterns found")
 
 
@@ -86,6 +108,7 @@ class PatternAgent:
         correlations = self._find_correlations(df)
         outliers = self._detect_outliers(df)
         seasonal = self._detect_seasonality(df, summary)
+        abc_analyses = self._analyze_abc(df)
 
         # Build summary sentence
         parts = []
@@ -102,6 +125,8 @@ class PatternAgent:
             parts.append(f"{len(outliers)} outlier(s)")
         if seasonal:
             parts.append(f"{len(seasonal)} seasonal pattern(s)")
+        if abc_analyses:
+            parts.append(f"{len(abc_analyses)} ABC/Pareto analyses")
 
         summary_text = f"Analysis found {', '.join(parts)}." if parts else "No significant patterns detected."
 
@@ -110,6 +135,7 @@ class PatternAgent:
             correlations=correlations,
             outliers=outliers,
             seasonal_patterns=seasonal,
+            abc_analyses=abc_analyses,
             summary=summary_text,
         )
 
@@ -265,3 +291,123 @@ class PatternAgent:
                 ))
 
         return patterns
+
+    # ------------------------------------------------------------------
+    # ABC / Pareto analysis
+    # ------------------------------------------------------------------
+
+    MAX_ABC_DIMENSIONS = 3       # categorical columns to explore
+    MAX_ABC_METRICS = 2          # numeric metrics to explore per dimension
+    MAX_ABC_CONTRIBUTORS = 50    # rows kept per analysis in the result
+    A_THRESHOLD_PCT = 80.0       # cumulative % bound for class A
+    B_THRESHOLD_PCT = 95.0       # cumulative % bound for class B
+
+    def _analyze_abc(self, df: pd.DataFrame) -> list[ABCAnalysis]:
+        """Classify segments into A/B/C contributors for the 80-20 rule.
+
+        For each candidate (categorical dimension, numeric metric) pair the
+        method groups by the dimension, sums the metric, sorts descending
+        and tags each segment with its Pareto class based on cumulative
+        share.
+        """
+        # --- 1. Find candidate dimensions: object / category columns with
+        # 2-100 unique values (skip IDs and free-text)
+        cat_cols: list[str] = []
+        for col in df.columns:
+            if df[col].dtype == "object" or str(df[col].dtype) == "category":
+                uniques = df[col].nunique(dropna=True)
+                if 2 <= uniques <= 100:
+                    cat_cols.append(col)
+        cat_cols = cat_cols[: self.MAX_ABC_DIMENSIONS]
+
+        # --- 2. Find candidate metrics: numeric columns with positive total
+        # and at least 5 distinct values (skip flags / constants / IDs)
+        metric_cols: list[str] = []
+        for col in df.select_dtypes(include=[np.number]).columns:
+            series = df[col].dropna()
+            if len(series) == 0:
+                continue
+            if series.sum() <= 0:
+                continue
+            if series.nunique() < 5:
+                continue
+            metric_cols.append(col)
+        metric_cols = metric_cols[: self.MAX_ABC_METRICS]
+
+        if not cat_cols or not metric_cols:
+            return []
+
+        analyses: list[ABCAnalysis] = []
+        for dim in cat_cols:
+            for metric in metric_cols:
+                analysis = self._build_abc(df, dim, metric)
+                if analysis is not None:
+                    analyses.append(analysis)
+
+        return analyses
+
+    def _build_abc(
+        self,
+        df: pd.DataFrame,
+        dim: str,
+        metric: str,
+    ) -> ABCAnalysis | None:
+        """Run the ABC computation for a single (dim, metric) pair."""
+        grouped = (
+            df.groupby(dim, dropna=True)[metric]
+            .sum()
+            .sort_values(ascending=False)
+        )
+        # Drop zero/negative segments — they distort the cumulative share
+        grouped = grouped[grouped > 0]
+        if len(grouped) < 2:
+            return None
+
+        total = float(grouped.sum())
+        if total <= 0:
+            return None
+
+        contributors: list[ABCContributor] = []
+        a_count = b_count = c_count = 0
+        cumulative = 0.0
+
+        for label, value in grouped.items():
+            share = (float(value) / total) * 100
+            cumulative += share
+
+            if cumulative <= self.A_THRESHOLD_PCT or a_count == 0:
+                # Always include at least one A segment so a single dominant
+                # value is not pushed into B by floating-point noise.
+                cls = "A"
+                a_count += 1
+            elif cumulative <= self.B_THRESHOLD_PCT:
+                cls = "B"
+                b_count += 1
+            else:
+                cls = "C"
+                c_count += 1
+
+            contributors.append(ABCContributor(
+                label=str(label),
+                value=round(float(value), 2),
+                share_pct=round(share, 2),
+                cumulative_pct=round(cumulative, 2),
+                abc_class=cls,
+            ))
+
+        a_pct = (a_count / len(grouped)) * 100 if grouped.size else 0
+        summary = (
+            f"{a_count} of {len(grouped)} {dim} segments ({a_pct:.0f}%) drive "
+            f"the top {self.A_THRESHOLD_PCT:.0f}% of {metric}"
+        )
+
+        return ABCAnalysis(
+            dimension=dim,
+            metric=metric,
+            total=round(total, 2),
+            contributors=contributors[: self.MAX_ABC_CONTRIBUTORS],
+            a_count=a_count,
+            b_count=b_count,
+            c_count=c_count,
+            summary=summary,
+        )
