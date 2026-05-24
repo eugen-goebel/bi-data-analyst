@@ -274,6 +274,45 @@ def _build_recommendations_table(doc: Document, recommendations):
         run.font.italic = True
 
 
+def _build_abc_table(doc: Document, analysis):
+    """Render one ABC analysis as a contributor table."""
+    para = doc.add_paragraph()
+    run = para.add_run(
+        f"{analysis.dimension.replace('_', ' ').title()} "
+        f"x {analysis.metric.replace('_', ' ').title()}"
+    )
+    run.bold = True
+    run.font.size = Pt(11)
+
+    doc.add_paragraph(analysis.summary)
+
+    rows = analysis.contributors[:15]
+    table = doc.add_table(rows=1 + len(rows), cols=5)
+    table.style = "Light Grid Accent 1"
+
+    headers = ["Segment", "Value", "Share %", "Cumulative %", "Class"]
+    for idx, header in enumerate(headers):
+        cell = table.rows[0].cells[idx]
+        cell.text = header
+        for r in cell.paragraphs[0].runs:
+            r.font.bold = True
+            r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+        _set_cell_background(cell, "1F4E78")
+
+    class_colors = {"A": "C6EFCE", "B": "FFEB9C", "C": "F8CBAD"}
+
+    for row_idx, contrib in enumerate(rows):
+        cells = table.rows[1 + row_idx].cells
+        cells[0].text = contrib.label
+        cells[1].text = f"{contrib.value:,.2f}"
+        cells[2].text = f"{contrib.share_pct:.2f}%"
+        cells[3].text = f"{contrib.cumulative_pct:.2f}%"
+        cells[4].text = contrib.abc_class
+        _set_cell_background(cells[4], class_colors.get(contrib.abc_class, "FFFFFF"))
+
+    doc.add_paragraph()
+
+
 def _build_outlier_table(doc: Document, outliers):
     """Build a table of detected outliers."""
     if not outliers:
@@ -432,6 +471,19 @@ def generate_docx_report(
     scatter_charts = [c for c in viz_result.charts if c.chart_type == "scatter"]
     for chart in scatter_charts:
         _add_chart(doc, viz_result.chart_dir, chart)
+
+    # 8b. ABC / Pareto Analysis
+    if patterns.abc_analyses:
+        _add_heading(doc, "ABC / Pareto Analysis")
+        _add_horizontal_rule(doc)
+        doc.add_paragraph(
+            "Identifies the segments that drive the bulk of each metric. "
+            "Class A items account for the first 80% of the total, B for the "
+            "next 15%, C for the remaining 5%."
+        )
+        doc.add_paragraph()
+        for abc in patterns.abc_analyses:
+            _build_abc_table(doc, abc)
 
     # 9. Key Findings
     _add_heading(doc, "Key Findings")
