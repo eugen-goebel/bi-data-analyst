@@ -310,14 +310,19 @@ class PatternAgent:
         and tags each segment with its Pareto class based on cumulative
         share.
         """
-        # --- 1. Find candidate dimensions: object / category columns with
-        # 2-100 unique values (skip IDs and free-text)
+        # --- 1. Find candidate dimensions: any non-numeric, non-datetime
+        # column with 2-100 unique values (skip IDs and free-text). Using
+        # the pandas type helpers makes this robust across the object /
+        # string / category dtype variants.
         cat_cols: list[str] = []
         for col in df.columns:
-            if df[col].dtype == "object" or str(df[col].dtype) == "category":
-                uniques = df[col].nunique(dropna=True)
-                if 2 <= uniques <= 100:
-                    cat_cols.append(col)
+            if pd.api.types.is_numeric_dtype(df[col]):
+                continue
+            if pd.api.types.is_datetime64_any_dtype(df[col]):
+                continue
+            uniques = df[col].nunique(dropna=True)
+            if 2 <= uniques <= 100:
+                cat_cols.append(col)
         cat_cols = cat_cols[: self.MAX_ABC_DIMENSIONS]
 
         # --- 2. Find candidate metrics: numeric columns with positive total
