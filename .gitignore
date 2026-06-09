@@ -21,3 +21,8 @@ Thumbs.db
 
 # Output
 output/*.docx
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
