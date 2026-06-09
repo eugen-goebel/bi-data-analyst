@@ -79,7 +79,6 @@ def main():
         report_path = orch.run_with_mock(sample_path, MOCK_INSIGHTS)
 
         if args.csv:
-            from utils.csv_exporter import export_analysis_csv
             csv_path = orch.export_csv(MOCK_INSIGHTS)
             print(f"\n  CSV export: {csv_path}")
 
@@ -100,6 +99,7 @@ def main():
         # Sheet listing mode
         if args.list_sheets:
             from agents.data_loader import DataLoaderAgent
+
             loader = DataLoaderAgent()
             try:
                 sheets = loader.list_sheets(args.filepath)

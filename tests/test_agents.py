@@ -9,10 +9,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agents.insight_agent import InsightAgent, InsightResult, KeyFinding, Recommendation
-from agents.data_loader import DataLoaderAgent, DataSummary, ColumnProfile
-from agents.pattern_agent import PatternAgent, PatternAnalysis
+from agents.data_loader import DataLoaderAgent
+from agents.insight_agent import InsightAgent, InsightResult
 from agents.mock_data import MOCK_INSIGHTS
+from agents.pattern_agent import PatternAgent
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(PROJECT_DIR, "data")
@@ -45,6 +45,7 @@ def sample_data():
 # ---------------------------------------------------------------------------
 # InsightAgent tests
 # ---------------------------------------------------------------------------
+
 
 class TestInsightAgent:
     def test_returns_insight_result(self, mock_client, sample_data):
@@ -88,10 +89,12 @@ class TestInsightAgent:
 # Orchestrator tests
 # ---------------------------------------------------------------------------
 
+
 class TestOrchestrator:
     @patch("agents.orchestrator.anthropic.Anthropic")
     def test_orchestrator_initializes(self, mock_anthropic_class):
         from agents.orchestrator import BIAnalysisOrchestrator
+
         orch = BIAnalysisOrchestrator(api_key="fake-key")
         assert orch is not None
         assert orch.model == "claude-opus-4-6"
@@ -99,6 +102,7 @@ class TestOrchestrator:
     @patch("agents.orchestrator.anthropic.Anthropic")
     def test_run_with_mock_produces_docx(self, mock_anthropic_class, tmp_path):
         from agents.orchestrator import BIAnalysisOrchestrator
+
         output_dir = str(tmp_path / "output")
         orch = BIAnalysisOrchestrator(api_key="fake-key", output_dir=output_dir)
         report_path = orch.run_with_mock(SAMPLE_CSV, MOCK_INSIGHTS)
@@ -109,6 +113,7 @@ class TestOrchestrator:
     @patch("agents.orchestrator.anthropic.Anthropic")
     def test_run_with_mock_creates_output_dir(self, mock_anthropic_class, tmp_path):
         from agents.orchestrator import BIAnalysisOrchestrator
+
         output_dir = str(tmp_path / "new_output_dir")
         assert not os.path.exists(output_dir)
         orch = BIAnalysisOrchestrator(api_key="fake-key", output_dir=output_dir)

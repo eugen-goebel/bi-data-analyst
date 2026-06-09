@@ -6,17 +6,19 @@ column profiles, numeric statistics, and a data quality score.
 """
 
 import os
-import pandas as pd
-import numpy as np
-from pydantic import BaseModel, Field
 
+import numpy as np
+import pandas as pd
+from pydantic import BaseModel, Field
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class ColumnProfile(BaseModel):
     """Profile of a single column in the dataset."""
+
     name: str = Field(description="Column name")
     dtype: str = Field(description="Data type: numeric, categorical, datetime")
     non_null_count: int = Field(description="Number of non-null values")
@@ -27,6 +29,7 @@ class ColumnProfile(BaseModel):
 
 class NumericStats(BaseModel):
     """Descriptive statistics for a numeric column."""
+
     column: str
     mean: float
     median: float
@@ -39,6 +42,7 @@ class NumericStats(BaseModel):
 
 class DataSummary(BaseModel):
     """Complete summary of a loaded dataset."""
+
     filename: str = Field(description="Original filename")
     sheet_name: str | None = Field(default=None, description="Sheet name for Excel files")
     row_count: int = Field(description="Total number of rows")
@@ -52,6 +56,7 @@ class DataSummary(BaseModel):
 # ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
+
 
 class DataLoaderAgent:
     """
@@ -113,7 +118,9 @@ class DataLoaderAgent:
 
         return results
 
-    def load(self, filepath: str, sheet_name: str | None = None) -> tuple[DataSummary, pd.DataFrame]:
+    def load(
+        self, filepath: str, sheet_name: str | None = None
+    ) -> tuple[DataSummary, pd.DataFrame]:
         """
         Load and profile a data file.
 
@@ -163,36 +170,42 @@ class DataLoaderAgent:
                 dtype = "categorical"
 
             sample = df[col].dropna().head(5).astype(str).tolist()
-            columns.append(ColumnProfile(
-                name=col,
-                dtype=dtype,
-                non_null_count=int(df[col].notna().sum()),
-                null_count=int(df[col].isna().sum()),
-                unique_count=int(df[col].nunique()),
-                sample_values=sample,
-            ))
+            columns.append(
+                ColumnProfile(
+                    name=col,
+                    dtype=dtype,
+                    non_null_count=int(df[col].notna().sum()),
+                    null_count=int(df[col].isna().sum()),
+                    unique_count=int(df[col].nunique()),
+                    sample_values=sample,
+                )
+            )
 
         # Numeric statistics
         numeric_stats = []
         for col in df.select_dtypes(include=[np.number]).columns:
             desc = df[col].describe()
-            numeric_stats.append(NumericStats(
-                column=col,
-                mean=round(float(desc["mean"]), 2),
-                median=round(float(df[col].median()), 2),
-                std=round(float(desc["std"]), 2),
-                min=round(float(desc["min"]), 2),
-                max=round(float(desc["max"]), 2),
-                q25=round(float(desc["25%"]), 2),
-                q75=round(float(desc["75%"]), 2),
-            ))
+            numeric_stats.append(
+                NumericStats(
+                    column=col,
+                    mean=round(float(desc["mean"]), 2),
+                    median=round(float(df[col].median()), 2),
+                    std=round(float(desc["std"]), 2),
+                    min=round(float(desc["min"]), 2),
+                    max=round(float(desc["max"]), 2),
+                    q25=round(float(desc["25%"]), 2),
+                    q75=round(float(desc["75%"]), 2),
+                )
+            )
 
         # Date range
         date_range = None
         date_cols = df.select_dtypes(include=["datetime64"]).columns
         if len(date_cols) > 0:
             dt_col = df[date_cols[0]]
-            date_range = f"{dt_col.min().strftime('%Y-%m-%d')} to {dt_col.max().strftime('%Y-%m-%d')}"
+            date_range = (
+                f"{dt_col.min().strftime('%Y-%m-%d')} to {dt_col.max().strftime('%Y-%m-%d')}"
+            )
 
         # Data quality score (0-100)
         total_cells = df.shape[0] * df.shape[1]

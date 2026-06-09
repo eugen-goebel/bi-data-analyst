@@ -11,8 +11,8 @@ import os
 from datetime import datetime
 
 from agents.data_loader import DataSummary
-from agents.pattern_agent import PatternAnalysis
 from agents.insight_agent import InsightResult
+from agents.pattern_agent import PatternAnalysis
 
 
 def _sanitize_cell(value: str) -> str:
@@ -95,37 +95,58 @@ def _build_rows(
     # --- Numeric Statistics ---
     rows.append(["Metric", "Mean", "Median", "Std Dev", "Min", "Max", "Q25", "Q75"])
     for stat in summary.numeric_stats:
-        rows.append([
-            stat.column, str(stat.mean), str(stat.median), str(stat.std),
-            str(stat.min), str(stat.max), str(stat.q25), str(stat.q75),
-        ])
+        rows.append(
+            [
+                stat.column,
+                str(stat.mean),
+                str(stat.median),
+                str(stat.std),
+                str(stat.min),
+                str(stat.max),
+                str(stat.q25),
+                str(stat.q75),
+            ]
+        )
     rows.append([])
 
     # --- Trends ---
     rows.append(["Trend Column", "Direction", "Change %", "Description"])
     for trend in patterns.trends:
-        rows.append([
-            trend.column, trend.direction,
-            str(trend.change_pct), trend.description,
-        ])
+        rows.append(
+            [
+                trend.column,
+                trend.direction,
+                str(trend.change_pct),
+                trend.description,
+            ]
+        )
     rows.append([])
 
     # --- Correlations ---
     rows.append(["Column A", "Column B", "Correlation", "Interpretation"])
     for corr in patterns.correlations:
-        rows.append([
-            corr.column_a, corr.column_b,
-            str(corr.correlation), corr.interpretation,
-        ])
+        rows.append(
+            [
+                corr.column_a,
+                corr.column_b,
+                str(corr.correlation),
+                corr.interpretation,
+            ]
+        )
     rows.append([])
 
     # --- Outliers ---
     rows.append(["Outlier Column", "Value", "Row Index", "Z-Score", "Description"])
     for outlier in patterns.outliers:
-        rows.append([
-            outlier.column, str(outlier.value), str(outlier.row_index),
-            str(outlier.z_score), outlier.description,
-        ])
+        rows.append(
+            [
+                outlier.column,
+                str(outlier.value),
+                str(outlier.row_index),
+                str(outlier.z_score),
+                outlier.description,
+            ]
+        )
     rows.append([])
 
     # --- Key Findings ---
@@ -137,10 +158,15 @@ def _build_rows(
     # --- Recommendations ---
     rows.append(["Title", "Description", "Priority", "Category", "Expected Impact"])
     for rec in insights.recommendations:
-        rows.append([
-            rec.title, rec.description, rec.priority,
-            rec.category, rec.expected_impact,
-        ])
+        rows.append(
+            [
+                rec.title,
+                rec.description,
+                rec.priority,
+                rec.category,
+                rec.expected_impact,
+            ]
+        )
     rows.append([])
 
     # --- Risk Alerts ---

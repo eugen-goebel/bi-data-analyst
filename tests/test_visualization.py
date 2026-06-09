@@ -6,12 +6,15 @@ validates the output files and metadata.
 """
 
 import os
+
 import pytest
 
 from agents.data_loader import DataLoaderAgent
 from agents.pattern_agent import PatternAgent
 from agents.visualization_agent import (
-    VisualizationAgent, VisualizationResult, ChartConfig,
+    ChartConfig,
+    VisualizationAgent,
+    VisualizationResult,
 )
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

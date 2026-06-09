@@ -5,16 +5,16 @@ Manages the sequential flow:
 DataLoader → PatternAgent → VisualizationAgent → InsightAgent → ReportGenerator
 """
 
-import os
 import tempfile
+
 import anthropic
 
 from agents.data_loader import DataLoaderAgent
+from agents.insight_agent import InsightAgent, InsightResult
 from agents.pattern_agent import PatternAgent
 from agents.visualization_agent import VisualizationAgent
-from agents.insight_agent import InsightAgent, InsightResult
-from utils.report_generator import generate_docx_report
 from utils.csv_exporter import export_analysis_csv
+from utils.report_generator import generate_docx_report
 
 
 class BIAnalysisOrchestrator:
@@ -66,25 +66,27 @@ class BIAnalysisOrchestrator:
         print(f"      Data quality: {summary.data_quality_score}/100")
 
         # Phase 2: Pattern detection
-        print(f"\n[2/5] Detecting patterns — trends, correlations, outliers ...")
+        print("\n[2/5] Detecting patterns — trends, correlations, outliers ...")
         patterns = self._pattern_agent.analyze(df, summary)
         self._last_patterns = patterns
         print(f"      {patterns.summary}")
 
         # Phase 3: Visualization
         chart_dir = tempfile.mkdtemp(prefix="bi_charts_")
-        print(f"\n[3/5] Generating charts ...")
+        print("\n[3/5] Generating charts ...")
         viz_result = self._viz_agent.create_charts(df, summary, patterns, chart_dir)
         print(f"      Created {len(viz_result.charts)} charts")
 
         # Phase 4: AI insights
-        print(f"\n[4/5] Generating AI-powered insights and recommendations ...")
+        print("\n[4/5] Generating AI-powered insights and recommendations ...")
         insights = self._insight_agent.generate_insights(summary, patterns)
-        print(f"      {len(insights.key_findings)} findings, "
-              f"{len(insights.recommendations)} recommendations")
+        print(
+            f"      {len(insights.key_findings)} findings, "
+            f"{len(insights.recommendations)} recommendations"
+        )
 
         # Phase 5: Report
-        print(f"\n[5/5] Building DOCX report with embedded charts ...")
+        print("\n[5/5] Building DOCX report with embedded charts ...")
         report_path = generate_docx_report(
             summary=summary,
             patterns=patterns,
@@ -140,9 +142,7 @@ class BIAnalysisOrchestrator:
                 print(f"      Skipping sheet '{sheet}': {e}")
         return report_paths
 
-    def run_with_mock(
-        self, filepath: str, mock_insights: InsightResult
-    ) -> str:
+    def run_with_mock(self, filepath: str, mock_insights: InsightResult) -> str:
         """
         Run the pipeline with mock AI insights (for --dry-run).
 
@@ -150,7 +150,7 @@ class BIAnalysisOrchestrator:
         real data. Only InsightAgent is replaced with mock data.
         """
         # Phase 1: Load data (real)
-        print(f"\n[1/5] Loading and validating data file ...")
+        print("\n[1/5] Loading and validating data file ...")
         summary, df = self._data_loader.load(filepath)
         self._last_summary = summary
         print(f"      Loaded: {summary.row_count:,} rows, {summary.column_count} columns")
@@ -158,24 +158,26 @@ class BIAnalysisOrchestrator:
         print(f"      Data quality: {summary.data_quality_score}/100")
 
         # Phase 2: Pattern detection (real)
-        print(f"\n[2/5] Detecting patterns — trends, correlations, outliers ...")
+        print("\n[2/5] Detecting patterns — trends, correlations, outliers ...")
         patterns = self._pattern_agent.analyze(df, summary)
         self._last_patterns = patterns
         print(f"      {patterns.summary}")
 
         # Phase 3: Visualization (real)
         chart_dir = tempfile.mkdtemp(prefix="bi_charts_")
-        print(f"\n[3/5] Generating charts ...")
+        print("\n[3/5] Generating charts ...")
         viz_result = self._viz_agent.create_charts(df, summary, patterns, chart_dir)
         print(f"      Created {len(viz_result.charts)} charts")
 
         # Phase 4: Mock insights
-        print(f"\n[4/5] DRY RUN — using mock insights (skipping API call)")
-        print(f"      {len(mock_insights.key_findings)} findings, "
-              f"{len(mock_insights.recommendations)} recommendations")
+        print("\n[4/5] DRY RUN — using mock insights (skipping API call)")
+        print(
+            f"      {len(mock_insights.key_findings)} findings, "
+            f"{len(mock_insights.recommendations)} recommendations"
+        )
 
         # Phase 5: Report
-        print(f"\n[5/5] Building DOCX report with embedded charts ...")
+        print("\n[5/5] Building DOCX report with embedded charts ...")
         report_path = generate_docx_report(
             summary=summary,
             patterns=patterns,
