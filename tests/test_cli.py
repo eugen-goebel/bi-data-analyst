@@ -5,10 +5,8 @@ Uses subprocess to invoke main.py as a separate process.
 """
 
 import os
-import sys
 import subprocess
-
-import pytest
+import sys
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAIN_PY = os.path.join(PROJECT_DIR, "main.py")

@@ -1,9 +1,9 @@
 """Tests for multi-sheet Excel support in DataLoaderAgent."""
 
-import pytest
 import pandas as pd
+import pytest
 
-from agents.data_loader import DataLoaderAgent, DataSummary
+from agents.data_loader import DataLoaderAgent
 
 
 @pytest.fixture
@@ -16,17 +16,21 @@ def multi_sheet_excel(tmp_path):
     """Create a multi-sheet Excel file for testing."""
     filepath = tmp_path / "multi_sheet.xlsx"
     with pd.ExcelWriter(filepath, engine="openpyxl") as writer:
-        pd.DataFrame({
-            "product": ["A", "B", "C"],
-            "revenue": [100, 200, 300],
-            "cost": [50, 100, 150],
-        }).to_excel(writer, sheet_name="Sales", index=False)
+        pd.DataFrame(
+            {
+                "product": ["A", "B", "C"],
+                "revenue": [100, 200, 300],
+                "cost": [50, 100, 150],
+            }
+        ).to_excel(writer, sheet_name="Sales", index=False)
 
-        pd.DataFrame({
-            "name": ["Alice", "Bob"],
-            "region": ["North", "South"],
-            "score": [85, 92],
-        }).to_excel(writer, sheet_name="Customers", index=False)
+        pd.DataFrame(
+            {
+                "name": ["Alice", "Bob"],
+                "region": ["North", "South"],
+                "score": [85, 92],
+            }
+        ).to_excel(writer, sheet_name="Customers", index=False)
 
         # Empty sheet (header only, one column)
         pd.DataFrame({"x": pd.Series(dtype="float")}).to_excel(
@@ -39,10 +43,12 @@ def multi_sheet_excel(tmp_path):
 def single_sheet_excel(tmp_path):
     """Create a single-sheet Excel file."""
     filepath = tmp_path / "single.xlsx"
-    pd.DataFrame({
-        "item": ["X", "Y"],
-        "value": [10, 20],
-    }).to_excel(filepath, index=False, sheet_name="Data")
+    pd.DataFrame(
+        {
+            "item": ["X", "Y"],
+            "value": [10, 20],
+        }
+    ).to_excel(filepath, index=False, sheet_name="Data")
     return str(filepath)
 
 
@@ -80,9 +86,11 @@ class TestLoadSpecificSheet:
 
     def test_sheet_name_none_for_csv(self, loader):
         import os
+
         sample = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data", "sample_sales.csv",
+            "data",
+            "sample_sales.csv",
         )
         summary, _ = loader.load(sample)
         assert summary.sheet_name is None

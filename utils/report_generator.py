@@ -7,33 +7,34 @@ a formatted Word document with embedded matplotlib visualizations.
 
 import os
 from datetime import datetime
+
 from docx import Document
-from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.shared import Inches, Pt, RGBColor
 
 from agents.data_loader import DataSummary
+from agents.insight_agent import InsightResult
 from agents.pattern_agent import PatternAnalysis
 from agents.visualization_agent import VisualizationResult
-from agents.insight_agent import InsightResult
-
 
 # ---------------------------------------------------------------------------
 # Color palette (corporate orange/teal theme)
 # ---------------------------------------------------------------------------
-COLOR_DARK_ORANGE  = RGBColor(0xC4, 0x49, 0x00)   # #C44900 — headers
-COLOR_TEAL         = RGBColor(0x0D, 0x73, 0x77)   # #0D7377 — accents
-COLOR_LIGHT_BG     = RGBColor(0xFF, 0xF8, 0xF0)   # #FFF8F0 — table backgrounds
-COLOR_WHITE        = RGBColor(0xFF, 0xFF, 0xFF)
+COLOR_DARK_ORANGE = RGBColor(0xC4, 0x49, 0x00)  # #C44900 — headers
+COLOR_TEAL = RGBColor(0x0D, 0x73, 0x77)  # #0D7377 — accents
+COLOR_LIGHT_BG = RGBColor(0xFF, 0xF8, 0xF0)  # #FFF8F0 — table backgrounds
+COLOR_WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 COLOR_PRIORITY_HIGH = "C62828"
-COLOR_PRIORITY_MED  = "E65100"
-COLOR_PRIORITY_LOW  = "2E7D32"
+COLOR_PRIORITY_MED = "E65100"
+COLOR_PRIORITY_LOW = "2E7D32"
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _set_cell_background(cell, hex_color: str):
     """Set a table cell's background color via XML."""
@@ -108,6 +109,7 @@ def _add_chart(doc: Document, chart_dir: str, chart_config):
 # ---------------------------------------------------------------------------
 # Section builders
 # ---------------------------------------------------------------------------
+
 
 def _build_cover_page(doc: Document, summary: DataSummary):
     """Create a styled cover page."""
@@ -231,7 +233,11 @@ def _build_recommendations_table(doc: Document, recommendations):
         run.font.size = Pt(10)
         run.font.color.rgb = COLOR_WHITE
 
-    priority_colors = {"High": COLOR_PRIORITY_HIGH, "Medium": COLOR_PRIORITY_MED, "Low": COLOR_PRIORITY_LOW}
+    priority_colors = {
+        "High": COLOR_PRIORITY_HIGH,
+        "Medium": COLOR_PRIORITY_MED,
+        "Low": COLOR_PRIORITY_LOW,
+    }
 
     for row_idx, rec in enumerate(recommendations):
         row = table.rows[row_idx + 1]
@@ -362,6 +368,7 @@ def _build_outlier_table(doc: Document, outliers):
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def generate_docx_report(
     summary: DataSummary,

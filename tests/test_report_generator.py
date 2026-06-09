@@ -6,13 +6,14 @@ then validates the output file structure and contents.
 """
 
 import os
+
 import pytest
 from docx import Document
 
 from agents.data_loader import DataLoaderAgent
+from agents.mock_data import MOCK_INSIGHTS
 from agents.pattern_agent import PatternAgent
 from agents.visualization_agent import VisualizationAgent
-from agents.mock_data import MOCK_INSIGHTS
 from utils.report_generator import generate_docx_report
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -91,7 +92,9 @@ class TestReportGenerator:
     def test_report_contains_tables(self, report_output):
         report_path, _ = report_output
         doc = Document(report_path)
-        assert len(doc.tables) >= 2, "Report should contain at least metrics and recommendations tables"
+        assert len(doc.tables) >= 2, (
+            "Report should contain at least metrics and recommendations tables"
+        )
 
     def test_report_contains_images(self, report_output):
         """Check that charts are embedded as images."""
