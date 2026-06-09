@@ -5,20 +5,22 @@ Uses the Anthropic API with structured outputs to transform statistical
 patterns into actionable business intelligence.
 """
 
+from typing import Literal
+
 import anthropic
 from pydantic import BaseModel, Field
-from typing import Literal
 
 from .data_loader import DataSummary
 from .pattern_agent import PatternAnalysis
-
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class KeyFinding(BaseModel):
     """A data-driven business finding."""
+
     finding: str = Field(description="One clear data-driven finding")
     evidence: str = Field(description="Specific data point or pattern supporting this")
     business_implication: str = Field(description="What this means for the business")
@@ -26,18 +28,19 @@ class KeyFinding(BaseModel):
 
 class Recommendation(BaseModel):
     """An actionable business recommendation."""
+
     title: str = Field(description="Short action-oriented title")
     description: str = Field(description="2-3 sentence explanation")
     priority: Literal["High", "Medium", "Low"]
     category: Literal[
-        "Revenue Growth", "Cost Reduction", "Risk Mitigation",
-        "Operational Efficiency", "Strategic"
+        "Revenue Growth", "Cost Reduction", "Risk Mitigation", "Operational Efficiency", "Strategic"
     ]
     expected_impact: str = Field(description="Estimated business impact")
 
 
 class InsightResult(BaseModel):
     """Complete AI-generated business insights."""
+
     executive_summary: str = Field(description="3-4 sentence overview")
     key_findings: list[KeyFinding] = Field(description="Major findings from the data")
     recommendations: list[Recommendation] = Field(description="Actionable recommendations")
@@ -50,6 +53,7 @@ class InsightResult(BaseModel):
 # Agent
 # ---------------------------------------------------------------------------
 
+
 class InsightAgent:
     """
     Generates business insights by sending data summaries and patterns
@@ -60,9 +64,7 @@ class InsightAgent:
         self.client = client
         self.model = model
 
-    def generate_insights(
-        self, summary: DataSummary, patterns: PatternAnalysis
-    ) -> InsightResult:
+    def generate_insights(self, summary: DataSummary, patterns: PatternAnalysis) -> InsightResult:
         """
         Generate AI-powered insights from data analysis results.
 

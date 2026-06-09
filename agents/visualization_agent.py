@@ -6,24 +6,28 @@ them as PNG files for embedding in the DOCX report. No API call required.
 """
 
 import os
+
+import matplotlib
 import numpy as np
 import pandas as pd
-import matplotlib
+
 matplotlib.use("Agg")  # Non-interactive backend
+from typing import Literal
+
 import matplotlib.pyplot as plt
 from pydantic import BaseModel, Field
-from typing import Literal
 
 from .data_loader import DataSummary
 from .pattern_agent import PatternAnalysis
-
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class ChartConfig(BaseModel):
     """Metadata for a generated chart."""
+
     chart_type: Literal["bar", "line", "pie", "heatmap", "scatter"]
     title: str
     filename: str = Field(description="Output filename like 'revenue_trend.png'")
@@ -32,6 +36,7 @@ class ChartConfig(BaseModel):
 
 class VisualizationResult(BaseModel):
     """Result containing chart metadata and output directory."""
+
     charts: list[ChartConfig]
     chart_dir: str = Field(description="Directory with generated chart PNGs")
 
@@ -47,6 +52,7 @@ GRID_COLOR = "#E0E0E0"
 # ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
+
 
 class VisualizationAgent:
     """
@@ -136,10 +142,22 @@ class VisualizationAgent:
             fig.patch.set_facecolor(BG_COLOR)
             ax.set_facecolor(BG_COLOR)
 
-            ax.plot(monthly.index, monthly.values, color=COLORS[0], linewidth=2.5, marker="o", markersize=6)
+            ax.plot(
+                monthly.index,
+                monthly.values,
+                color=COLORS[0],
+                linewidth=2.5,
+                marker="o",
+                markersize=6,
+            )
             ax.fill_between(monthly.index, monthly.values, alpha=0.1, color=COLORS[0])
 
-            ax.set_title(f"{metric.replace('_', ' ').title()} — Monthly Trend", fontsize=14, fontweight="bold", pad=15)
+            ax.set_title(
+                f"{metric.replace('_', ' ').title()} — Monthly Trend",
+                fontsize=14,
+                fontweight="bold",
+                pad=15,
+            )
             ax.set_xlabel("")
             ax.set_ylabel(metric.replace("_", " ").title(), fontsize=11)
             ax.grid(True, alpha=0.3, color=GRID_COLOR)
@@ -171,10 +189,14 @@ class VisualizationAgent:
             fig.patch.set_facecolor(BG_COLOR)
             ax.set_facecolor(BG_COLOR)
 
-            bars = ax.barh(grouped.index, grouped.values, color=COLORS[:len(grouped)], height=0.6)
+            bars = ax.barh(grouped.index, grouped.values, color=COLORS[: len(grouped)], height=0.6)
 
-            ax.set_title(f"{metric.replace('_', ' ').title()} by {cat_col.replace('_', ' ').title()}",
-                         fontsize=14, fontweight="bold", pad=15)
+            ax.set_title(
+                f"{metric.replace('_', ' ').title()} by {cat_col.replace('_', ' ').title()}",
+                fontsize=14,
+                fontweight="bold",
+                pad=15,
+            )
             ax.set_xlabel(metric.replace("_", " ").title(), fontsize=11)
             ax.grid(True, axis="x", alpha=0.3, color=GRID_COLOR)
             ax.spines["top"].set_visible(False)
@@ -183,8 +205,14 @@ class VisualizationAgent:
             # Value labels
             for bar in bars:
                 width = bar.get_width()
-                ax.text(width * 1.01, bar.get_y() + bar.get_height() / 2,
-                        f"{width:,.0f}", va="center", fontsize=9, color="#555")
+                ax.text(
+                    width * 1.01,
+                    bar.get_y() + bar.get_height() / 2,
+                    f"{width:,.0f}",
+                    va="center",
+                    fontsize=9,
+                    color="#555",
+                )
 
             plt.tight_layout()
 
@@ -210,16 +238,23 @@ class VisualizationAgent:
             fig.patch.set_facecolor(BG_COLOR)
 
             wedges, texts, autotexts = ax.pie(
-                grouped.values, labels=grouped.index, autopct="%1.1f%%",
-                colors=COLORS[:len(grouped)], startangle=90,
+                grouped.values,
+                labels=grouped.index,
+                autopct="%1.1f%%",
+                colors=COLORS[: len(grouped)],
+                startangle=90,
                 textprops={"fontsize": 10},
             )
             for autotext in autotexts:
                 autotext.set_fontweight("bold")
                 autotext.set_color("white")
 
-            ax.set_title(f"{metric.replace('_', ' ').title()} Distribution by {cat_col.replace('_', ' ').title()}",
-                         fontsize=14, fontweight="bold", pad=20)
+            ax.set_title(
+                f"{metric.replace('_', ' ').title()} Distribution by {cat_col.replace('_', ' ').title()}",
+                fontsize=14,
+                fontweight="bold",
+                pad=20,
+            )
 
             plt.tight_layout()
 
@@ -257,8 +292,16 @@ class VisualizationAgent:
                 for j in range(len(corr)):
                     val = corr.values[i, j]
                     color = "white" if abs(val) > 0.6 else "black"
-                    ax.text(j, i, f"{val:.2f}", ha="center", va="center",
-                            fontsize=8, color=color, fontweight="bold")
+                    ax.text(
+                        j,
+                        i,
+                        f"{val:.2f}",
+                        ha="center",
+                        va="center",
+                        fontsize=8,
+                        color=color,
+                        fontweight="bold",
+                    )
 
             ax.set_title("Correlation Matrix", fontsize=14, fontweight="bold", pad=15)
             fig.colorbar(im, ax=ax, shrink=0.8)
@@ -288,11 +331,21 @@ class VisualizationAgent:
             categories = df[cat_col].unique()
             for i, cat in enumerate(categories):
                 mask = df[cat_col] == cat
-                ax.scatter(df.loc[mask, col_x], df.loc[mask, col_y],
-                           label=cat, color=COLORS[i % len(COLORS)], alpha=0.7, s=50)
+                ax.scatter(
+                    df.loc[mask, col_x],
+                    df.loc[mask, col_y],
+                    label=cat,
+                    color=COLORS[i % len(COLORS)],
+                    alpha=0.7,
+                    s=50,
+                )
 
-            ax.set_title(f"{col_y.replace('_', ' ').title()} vs {col_x.replace('_', ' ').title()}",
-                         fontsize=14, fontweight="bold", pad=15)
+            ax.set_title(
+                f"{col_y.replace('_', ' ').title()} vs {col_x.replace('_', ' ').title()}",
+                fontsize=14,
+                fontweight="bold",
+                pad=15,
+            )
             ax.set_xlabel(col_x.replace("_", " ").title(), fontsize=11)
             ax.set_ylabel(col_y.replace("_", " ").title(), fontsize=11)
             ax.legend(title=cat_col.replace("_", " ").title(), fontsize=9)

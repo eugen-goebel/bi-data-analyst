@@ -9,16 +9,20 @@ KeyFinding, Recommendation, InsightResult.
 import pytest
 from pydantic import ValidationError
 
-from agents.data_loader import ColumnProfile, NumericStats, DataSummary
+from agents.data_loader import ColumnProfile, DataSummary, NumericStats
+from agents.insight_agent import InsightResult, KeyFinding, Recommendation
 from agents.pattern_agent import (
-    TrendResult, CorrelationPair, Outlier, SeasonalPattern, PatternAnalysis,
+    CorrelationPair,
+    Outlier,
+    PatternAnalysis,
+    SeasonalPattern,
+    TrendResult,
 )
-from agents.insight_agent import KeyFinding, Recommendation, InsightResult
-
 
 # ---------------------------------------------------------------------------
 # ColumnProfile
 # ---------------------------------------------------------------------------
+
 
 class TestColumnProfile:
     def test_valid_column_profile(self):
@@ -61,6 +65,7 @@ class TestColumnProfile:
 # ---------------------------------------------------------------------------
 # NumericStats
 # ---------------------------------------------------------------------------
+
 
 class TestNumericStats:
     def test_valid_numeric_stats(self):
@@ -105,11 +110,16 @@ class TestNumericStats:
 # DataSummary
 # ---------------------------------------------------------------------------
 
+
 class TestDataSummary:
     def test_valid_data_summary(self):
         col = ColumnProfile(
-            name="x", dtype="numeric", non_null_count=10,
-            null_count=0, unique_count=10, sample_values=["1"],
+            name="x",
+            dtype="numeric",
+            non_null_count=10,
+            null_count=0,
+            unique_count=10,
+            sample_values=["1"],
         )
         ds = DataSummary(
             filename="test.csv",
@@ -138,6 +148,7 @@ class TestDataSummary:
 # TrendResult
 # ---------------------------------------------------------------------------
 
+
 class TestTrendResult:
     def test_valid_trend(self):
         t = TrendResult(
@@ -162,6 +173,7 @@ class TestTrendResult:
 # CorrelationPair
 # ---------------------------------------------------------------------------
 
+
 class TestCorrelationPair:
     def test_valid_correlation(self):
         cp = CorrelationPair(
@@ -174,7 +186,8 @@ class TestCorrelationPair:
 
     def test_json_roundtrip(self):
         cp = CorrelationPair(
-            column_a="a", column_b="b",
+            column_a="a",
+            column_b="b",
             correlation=-0.72,
             interpretation="negative",
         )
@@ -185,6 +198,7 @@ class TestCorrelationPair:
 # ---------------------------------------------------------------------------
 # Outlier
 # ---------------------------------------------------------------------------
+
 
 class TestOutlier:
     def test_valid_outlier(self):
@@ -210,6 +224,7 @@ class TestOutlier:
 # SeasonalPattern
 # ---------------------------------------------------------------------------
 
+
 class TestSeasonalPattern:
     def test_valid_seasonal(self):
         sp = SeasonalPattern(
@@ -225,6 +240,7 @@ class TestSeasonalPattern:
 # ---------------------------------------------------------------------------
 # PatternAnalysis
 # ---------------------------------------------------------------------------
+
 
 class TestPatternAnalysis:
     def test_valid_pattern_analysis(self):
@@ -251,6 +267,7 @@ class TestPatternAnalysis:
 # ---------------------------------------------------------------------------
 # Recommendation (Literal validation)
 # ---------------------------------------------------------------------------
+
 
 class TestRecommendation:
     def test_valid_recommendation(self):
@@ -287,20 +304,29 @@ class TestRecommendation:
     def test_all_valid_priorities(self):
         for p in ["High", "Medium", "Low"]:
             r = Recommendation(
-                title="t", description="d", priority=p,
-                category="Strategic", expected_impact="e",
+                title="t",
+                description="d",
+                priority=p,
+                category="Strategic",
+                expected_impact="e",
             )
             assert r.priority == p
 
     def test_all_valid_categories(self):
         categories = [
-            "Revenue Growth", "Cost Reduction", "Risk Mitigation",
-            "Operational Efficiency", "Strategic",
+            "Revenue Growth",
+            "Cost Reduction",
+            "Risk Mitigation",
+            "Operational Efficiency",
+            "Strategic",
         ]
         for c in categories:
             r = Recommendation(
-                title="t", description="d", priority="Low",
-                category=c, expected_impact="e",
+                title="t",
+                description="d",
+                priority="Low",
+                category=c,
+                expected_impact="e",
             )
             assert r.category == c
 
@@ -308,6 +334,7 @@ class TestRecommendation:
 # ---------------------------------------------------------------------------
 # InsightResult
 # ---------------------------------------------------------------------------
+
 
 class TestInsightResult:
     def test_valid_insight_result(self):
@@ -338,8 +365,11 @@ class TestInsightResult:
             business_implication="Test implication",
         )
         rec = Recommendation(
-            title="t", description="d", priority="High",
-            category="Strategic", expected_impact="e",
+            title="t",
+            description="d",
+            priority="High",
+            category="Strategic",
+            expected_impact="e",
         )
         ir = InsightResult(
             executive_summary="Summary.",

@@ -5,20 +5,22 @@ Performs statistical analysis on the dataset using pandas and numpy.
 No API call required.
 """
 
-import pandas as pd
-import numpy as np
-from pydantic import BaseModel, Field
 from typing import Literal
 
-from .data_loader import DataSummary
+import numpy as np
+import pandas as pd
+from pydantic import BaseModel, Field
 
+from .data_loader import DataSummary
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class TrendResult(BaseModel):
     """Detected trend in a numeric column."""
+
     column: str = Field(description="Column analyzed")
     direction: Literal["increasing", "decreasing", "stable", "volatile"]
     change_pct: float = Field(description="Percentage change over the period")
@@ -27,6 +29,7 @@ class TrendResult(BaseModel):
 
 class CorrelationPair(BaseModel):
     """Significant correlation between two columns."""
+
     column_a: str
     column_b: str
     correlation: float = Field(description="Pearson correlation coefficient")
@@ -35,6 +38,7 @@ class CorrelationPair(BaseModel):
 
 class Outlier(BaseModel):
     """Detected statistical outlier."""
+
     column: str
     value: float
     row_index: int
@@ -44,6 +48,7 @@ class Outlier(BaseModel):
 
 class SeasonalPattern(BaseModel):
     """Detected seasonal or cyclic pattern."""
+
     column: str
     period: str = Field(description="e.g., monthly, quarterly")
     peak_period: str = Field(description="When the metric typically peaks")
@@ -53,6 +58,7 @@ class SeasonalPattern(BaseModel):
 
 class ABCContributor(BaseModel):
     """A single segment in an ABC/Pareto analysis."""
+
     label: str = Field(description="Segment label, e.g. 'North'")
     value: float = Field(description="Contribution in the chosen metric")
     share_pct: float = Field(description="Share of the total in percent")
@@ -62,6 +68,7 @@ class ABCContributor(BaseModel):
 
 class ABCAnalysis(BaseModel):
     """Pareto / 80-20 split for one categorical dimension over one numeric metric."""
+
     dimension: str = Field(description="Categorical column grouped by")
     metric: str = Field(description="Numeric column aggregated")
     total: float = Field(description="Total sum of the metric across all segments")
@@ -74,6 +81,7 @@ class ABCAnalysis(BaseModel):
 
 class PatternAnalysis(BaseModel):
     """Complete pattern analysis results."""
+
     trends: list[TrendResult]
     correlations: list[CorrelationPair]
     outliers: list[Outlier]
@@ -85,6 +93,7 @@ class PatternAnalysis(BaseModel):
 # ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
+
 
 class PatternAgent:
     """
@@ -128,7 +137,9 @@ class PatternAgent:
         if abc_analyses:
             parts.append(f"{len(abc_analyses)} ABC/Pareto analyses")
 
-        summary_text = f"Analysis found {', '.join(parts)}." if parts else "No significant patterns detected."
+        summary_text = (
+            f"Analysis found {', '.join(parts)}." if parts else "No significant patterns detected."
+        )
 
         return PatternAnalysis(
             trends=trends,
@@ -173,14 +184,18 @@ class PatternAgent:
             else:
                 direction = "stable"
 
-            description = f"{col} changed by {change_pct:+.1f}% over the analysis period ({direction})"
+            description = (
+                f"{col} changed by {change_pct:+.1f}% over the analysis period ({direction})"
+            )
 
-            trends.append(TrendResult(
-                column=col,
-                direction=direction,
-                change_pct=change_pct,
-                description=description,
-            ))
+            trends.append(
+                TrendResult(
+                    column=col,
+                    direction=direction,
+                    change_pct=change_pct,
+                    description=description,
+                )
+            )
 
         return trends
 
@@ -211,12 +226,14 @@ class PatternAgent:
                         f"{strength} {direction} correlation (r={r:.2f}): "
                         f"as {col_a} increases, {col_b} {'increases' if r > 0 else 'decreases'}"
                     )
-                    pairs.append(CorrelationPair(
-                        column_a=col_a,
-                        column_b=col_b,
-                        correlation=round(float(r), 3),
-                        interpretation=interpretation,
-                    ))
+                    pairs.append(
+                        CorrelationPair(
+                            column_a=col_a,
+                            column_b=col_b,
+                            correlation=round(float(r), 3),
+                            interpretation=interpretation,
+                        )
+                    )
 
         # Sort by absolute correlation strength
         pairs.sort(key=lambda p: abs(p.correlation), reverse=True)
@@ -241,13 +258,15 @@ class PatternAgent:
 
             for idx, z in z_scores.items():
                 if abs(z) > 2.5:
-                    outliers.append(Outlier(
-                        column=col,
-                        value=round(float(df.loc[idx, col]), 2),
-                        row_index=int(idx),
-                        z_score=round(float(z), 2),
-                        description=f"Unusual {col} value of {df.loc[idx, col]:.0f} (z-score: {z:.1f})",
-                    ))
+                    outliers.append(
+                        Outlier(
+                            column=col,
+                            value=round(float(df.loc[idx, col]), 2),
+                            row_index=int(idx),
+                            z_score=round(float(z), 2),
+                            description=f"Unusual {col} value of {df.loc[idx, col]:.0f} (z-score: {z:.1f})",
+                        )
+                    )
 
         outliers.sort(key=lambda o: abs(o.z_score), reverse=True)
         return outliers[:15]  # Top 15
@@ -275,20 +294,35 @@ class PatternAgent:
             peak_month = int(monthly.idxmax())
             trough_month = int(monthly.idxmin())
 
-            month_names = {1: "January", 2: "February", 3: "March", 4: "April",
-                          5: "May", 6: "June", 7: "July", 8: "August",
-                          9: "September", 10: "October", 11: "November", 12: "December"}
+            month_names = {
+                1: "January",
+                2: "February",
+                3: "March",
+                4: "April",
+                5: "May",
+                6: "June",
+                7: "July",
+                8: "August",
+                9: "September",
+                10: "October",
+                11: "November",
+                12: "December",
+            }
 
-            variation = (monthly.max() - monthly.min()) / monthly.mean() if monthly.mean() > 0 else 0
+            variation = (
+                (monthly.max() - monthly.min()) / monthly.mean() if monthly.mean() > 0 else 0
+            )
             if variation > 0.15:  # At least 15% variation to count as seasonal
-                patterns.append(SeasonalPattern(
-                    column=col,
-                    period="monthly",
-                    peak_period=month_names.get(peak_month, str(peak_month)),
-                    trough_period=month_names.get(trough_month, str(trough_month)),
-                    description=f"{col} shows seasonal variation of {variation:.0%}, "
-                                f"peaking in {month_names.get(peak_month, str(peak_month))}",
-                ))
+                patterns.append(
+                    SeasonalPattern(
+                        column=col,
+                        period="monthly",
+                        peak_period=month_names.get(peak_month, str(peak_month)),
+                        trough_period=month_names.get(trough_month, str(trough_month)),
+                        description=f"{col} shows seasonal variation of {variation:.0%}, "
+                        f"peaking in {month_names.get(peak_month, str(peak_month))}",
+                    )
+                )
 
         return patterns
 
@@ -296,11 +330,11 @@ class PatternAgent:
     # ABC / Pareto analysis
     # ------------------------------------------------------------------
 
-    MAX_ABC_DIMENSIONS = 3       # categorical columns to explore
-    MAX_ABC_METRICS = 2          # numeric metrics to explore per dimension
-    MAX_ABC_CONTRIBUTORS = 50    # rows kept per analysis in the result
-    A_THRESHOLD_PCT = 80.0       # cumulative % bound for class A
-    B_THRESHOLD_PCT = 95.0       # cumulative % bound for class B
+    MAX_ABC_DIMENSIONS = 3  # categorical columns to explore
+    MAX_ABC_METRICS = 2  # numeric metrics to explore per dimension
+    MAX_ABC_CONTRIBUTORS = 50  # rows kept per analysis in the result
+    A_THRESHOLD_PCT = 80.0  # cumulative % bound for class A
+    B_THRESHOLD_PCT = 95.0  # cumulative % bound for class B
 
     def _analyze_abc(self, df: pd.DataFrame) -> list[ABCAnalysis]:
         """Classify segments into A/B/C contributors for the 80-20 rule.
@@ -358,11 +392,7 @@ class PatternAgent:
         metric: str,
     ) -> ABCAnalysis | None:
         """Run the ABC computation for a single (dim, metric) pair."""
-        grouped = (
-            df.groupby(dim, dropna=True)[metric]
-            .sum()
-            .sort_values(ascending=False)
-        )
+        grouped = df.groupby(dim, dropna=True)[metric].sum().sort_values(ascending=False)
         # Drop zero/negative segments — they distort the cumulative share
         grouped = grouped[grouped > 0]
         if len(grouped) < 2:
@@ -392,13 +422,15 @@ class PatternAgent:
                 cls = "C"
                 c_count += 1
 
-            contributors.append(ABCContributor(
-                label=str(label),
-                value=round(float(value), 2),
-                share_pct=round(share, 2),
-                cumulative_pct=round(cumulative, 2),
-                abc_class=cls,
-            ))
+            contributors.append(
+                ABCContributor(
+                    label=str(label),
+                    value=round(float(value), 2),
+                    share_pct=round(share, 2),
+                    cumulative_pct=round(cumulative, 2),
+                    abc_class=cls,
+                )
+            )
 
         a_pct = (a_count / len(grouped)) * 100 if grouped.size else 0
         summary = (

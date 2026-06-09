@@ -5,6 +5,7 @@ Uses the real sample_sales.csv (192 rows, 10 columns) from the data/ directory.
 """
 
 import os
+
 import pytest
 
 from agents.data_loader import DataLoaderAgent, DataSummary
@@ -28,6 +29,7 @@ def loaded_data(loader):
 # ---------------------------------------------------------------------------
 # Happy path
 # ---------------------------------------------------------------------------
+
 
 class TestDataLoaderHappyPath:
     def test_load_returns_tuple(self, loaded_data):
@@ -75,6 +77,7 @@ class TestDataLoaderHappyPath:
 # ---------------------------------------------------------------------------
 # Error cases
 # ---------------------------------------------------------------------------
+
 
 class TestDataLoaderErrors:
     def test_file_not_found(self, loader):

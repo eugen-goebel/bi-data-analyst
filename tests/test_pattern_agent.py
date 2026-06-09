@@ -6,12 +6,16 @@ on the real data.
 """
 
 import os
+
 import pytest
 
 from agents.data_loader import DataLoaderAgent
 from agents.pattern_agent import (
-    PatternAgent, PatternAnalysis, TrendResult,
-    CorrelationPair, Outlier, SeasonalPattern,
+    Outlier,
+    PatternAgent,
+    PatternAnalysis,
+    SeasonalPattern,
+    TrendResult,
 )
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,14 +49,9 @@ class TestPatternAgent:
         patterns, _, _ = analysis_result
         assert len(patterns.correlations) > 0
         # revenue and customer_count should be correlated
-        col_pairs = {
-            (c.column_a, c.column_b) for c in patterns.correlations
-        }
+        col_pairs = {(c.column_a, c.column_b) for c in patterns.correlations}
         # Check that at least one pair involves revenue and customer_count
-        has_rev_cust = any(
-            ("customer_count" in pair and "revenue" in pair)
-            for pair in [(c.column_a, c.column_b) for c in patterns.correlations]
-        )
+        has_rev_cust = any(("customer_count" in pair and "revenue" in pair) for pair in col_pairs)
         assert has_rev_cust, "Expected correlation between revenue and customer_count"
 
     def test_outliers_found(self, analysis_result):
@@ -90,6 +89,7 @@ class TestPatternAgent:
 # ---------------------------------------------------------------------------
 # ABC / Pareto analysis
 # ---------------------------------------------------------------------------
+
 
 class TestABCAnalysis:
     """Coverage for the 80-15-5 segmentation."""
@@ -142,15 +142,18 @@ class TestABCAnalysis:
     def test_classic_pareto_dataset(self):
         """8 of 10 items contribute ~20% combined → A=2, B=4, C=4."""
         import pandas as pd
+
         from agents.pattern_agent import PatternAgent
 
         # 2 dominant segments (90% of revenue), 8 small ones — classic 80/20
-        df = pd.DataFrame({
-            "product": [f"P{i}" for i in range(1, 11)],
-            "extra_dim": ["x", "y"] * 5,                 # 2nd dim so agent picks 'product'
-            "revenue": [500, 400, 20, 20, 15, 15, 10, 10, 5, 5],
-            "units":   [50,  40,  2,  2,  1,  1,  1,  1, 1, 1],
-        })
+        df = pd.DataFrame(
+            {
+                "product": [f"P{i}" for i in range(1, 11)],
+                "extra_dim": ["x", "y"] * 5,  # 2nd dim so agent picks 'product'
+                "revenue": [500, 400, 20, 20, 15, 15, 10, 10, 5, 5],
+                "units": [50, 40, 2, 2, 1, 1, 1, 1, 1, 1],
+            }
+        )
         results = PatternAgent()._analyze_abc(df)
         product_revenue = next(
             (a for a in results if a.dimension == "product" and a.metric == "revenue"),
@@ -166,26 +169,32 @@ class TestABCAnalysis:
 
     def test_single_value_dimension_skipped(self):
         import pandas as pd
+
         from agents.pattern_agent import PatternAgent
 
         # 'region' has only one value → cannot do meaningful ABC
-        df = pd.DataFrame({
-            "region": ["North"] * 10,
-            "other_dim": ["a", "b"] * 5,
-            "revenue": [100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
-        })
+        df = pd.DataFrame(
+            {
+                "region": ["North"] * 10,
+                "other_dim": ["a", "b"] * 5,
+                "revenue": [100, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+            }
+        )
         results = PatternAgent()._analyze_abc(df)
         assert all(r.dimension != "region" for r in results)
 
     def test_all_negative_metric_skipped(self):
         import pandas as pd
+
         from agents.pattern_agent import PatternAgent
 
-        df = pd.DataFrame({
-            "region": ["N", "S", "E", "W"] * 3,
-            "loss": [-10, -20, -30, -40] * 3,           # all negative → skip
-            "revenue": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
-        })
+        df = pd.DataFrame(
+            {
+                "region": ["N", "S", "E", "W"] * 3,
+                "loss": [-10, -20, -30, -40] * 3,  # all negative → skip
+                "revenue": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
+            }
+        )
         results = PatternAgent()._analyze_abc(df)
         # 'loss' should not appear as a metric
         assert all(r.metric != "loss" for r in results)
