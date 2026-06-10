@@ -1,3 +1,27 @@
+[project]
+name = "bi-data-analyst"
+version = "1.1.0"
+description = "Multi-agent BI system that transforms CSV and Excel data into intelligence reports with charts and recommendations"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.99.0",
+    "python-docx>=1.1.0",
+    "python-dotenv>=1.2.2",
+    "pydantic>=2.13.3",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "numpy>=2.0.0",
+    "openpyxl>=3.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "ruff>=0.15",
+    "pytest-cov>=5",
+    "mypy>=2.0",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"

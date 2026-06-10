@@ -77,15 +77,15 @@ git clone https://github.com/eugen-goebel/bi-data-analyst.git
 cd bi-data-analyst
 
 # 2. Install dependencies
-pip install -r requirements.txt
+uv sync
 
 # 3a. Test without an API key (uses sample data + mock insights)
-python main.py --dry-run
+uv run main.py --dry-run
 
 # 3b. Analyze your own data with Anthropic API
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
-python main.py your_data.csv
-python main.py quarterly_sales.xlsx --output ./reports
+uv run main.py your_data.csv
+uv run main.py quarterly_sales.xlsx --output ./reports
 ```
 
 The report is saved to `./output/bi_report_<filename>_<date>.docx`.
@@ -112,7 +112,7 @@ The test suite covers:
 
 ## Example Output
 
-Running `python main.py --dry-run` produces a ~12-page report with 5 embedded charts:
+Running `uv run main.py --dry-run` produces a ~12-page report with 5 embedded charts:
 
 <p align="center">
   <img src="assets/report_preview.png" alt="Example BI report" width="600">
