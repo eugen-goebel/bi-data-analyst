@@ -9,9 +9,9 @@ import tempfile
 
 import anthropic
 
-from agents.data_loader import DataLoaderAgent
+from agents.data_loader import DataLoaderAgent, DataSummary
 from agents.insight_agent import InsightAgent, InsightResult
-from agents.pattern_agent import PatternAgent
+from agents.pattern_agent import PatternAgent, PatternAnalysis
 from agents.visualization_agent import VisualizationAgent
 from utils.csv_exporter import export_analysis_csv
 from utils.report_generator import generate_docx_report
@@ -42,8 +42,8 @@ class BIAnalysisOrchestrator:
         self._pattern_agent = PatternAgent()
         self._viz_agent = VisualizationAgent()
         self._insight_agent = InsightAgent(self.client, model=model)
-        self._last_summary = None
-        self._last_patterns = None
+        self._last_summary: DataSummary | None = None
+        self._last_patterns: PatternAnalysis | None = None
 
     def run(self, filepath: str, sheet_name: str | None = None) -> str:
         """

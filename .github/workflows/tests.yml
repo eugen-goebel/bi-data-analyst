@@ -17,14 +17,17 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Ruff
-        run: pip install -r requirements-dev.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Ruff lint
         run: ruff check .
 
       - name: Ruff format check
         run: ruff format --check .
+
+      - name: Type check with mypy
+        run: mypy
 
   test:
     runs-on: ubuntu-latest
