@@ -1,3 +1,0 @@
-ruff>=0.15
-pytest-cov>=5
-mypy>=2.0
