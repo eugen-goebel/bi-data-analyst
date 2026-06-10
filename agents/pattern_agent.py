@@ -152,7 +152,7 @@ class PatternAgent:
 
     def _detect_trends(self, df: pd.DataFrame, summary: DataSummary) -> list[TrendResult]:
         """Detect trends in numeric columns over time."""
-        trends = []
+        trends: list[TrendResult] = []
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         date_cols = df.select_dtypes(include=["datetime64"]).columns
 
@@ -175,6 +175,7 @@ class PatternAgent:
             change_pct = round(((last_val - first_val) / abs(first_val)) * 100, 1)
             cv = monthly[col].std() / monthly[col].mean() if monthly[col].mean() != 0 else 0
 
+            direction: Literal["increasing", "decreasing", "stable", "volatile"]
             if cv > 0.3:
                 direction = "volatile"
             elif change_pct > 10:
@@ -273,7 +274,7 @@ class PatternAgent:
 
     def _detect_seasonality(self, df: pd.DataFrame, summary: DataSummary) -> list[SeasonalPattern]:
         """Detect seasonal patterns in time-series data."""
-        patterns = []
+        patterns: list[SeasonalPattern] = []
         date_cols = df.select_dtypes(include=["datetime64"]).columns
         numeric_cols = df.select_dtypes(include=[np.number]).columns
 
@@ -410,6 +411,7 @@ class PatternAgent:
             share = (float(value) / total) * 100
             cumulative += share
 
+            cls: Literal["A", "B", "C"]
             if cumulative <= self.A_THRESHOLD_PCT or a_count == 0:
                 # Always include at least one A segment so a single dominant
                 # value is not pushed into B by floating-point noise.

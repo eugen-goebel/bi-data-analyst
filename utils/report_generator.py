@@ -9,6 +9,7 @@ import os
 from datetime import datetime
 
 from docx import Document
+from docx.document import Document as DocxDocument
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -47,7 +48,7 @@ def _set_cell_background(cell, hex_color: str):
     tcPr.append(shd)
 
 
-def _add_heading(doc: Document, text: str, level: int = 1):
+def _add_heading(doc: DocxDocument, text: str, level: int = 1):
     """Add a styled section heading."""
     para = doc.add_heading(text, level=level)
     run = para.runs[0]
@@ -63,7 +64,7 @@ def _add_heading(doc: Document, text: str, level: int = 1):
     return para
 
 
-def _add_bullet_list(doc: Document, items: list[str], indent: int = 0):
+def _add_bullet_list(doc: DocxDocument, items: list[str], indent: int = 0):
     """Add a bulleted list of items."""
     for item in items:
         para = doc.add_paragraph(style="List Bullet")
@@ -72,7 +73,7 @@ def _add_bullet_list(doc: Document, items: list[str], indent: int = 0):
         run.font.size = Pt(10.5)
 
 
-def _add_horizontal_rule(doc: Document):
+def _add_horizontal_rule(doc: DocxDocument):
     """Add a thin horizontal divider."""
     para = doc.add_paragraph()
     pPr = para._p.get_or_add_pPr()
@@ -88,7 +89,7 @@ def _add_horizontal_rule(doc: Document):
     para.paragraph_format.space_after = Pt(6)
 
 
-def _add_chart(doc: Document, chart_dir: str, chart_config):
+def _add_chart(doc: DocxDocument, chart_dir: str, chart_config):
     """Embed a chart image with caption."""
     chart_path = os.path.join(chart_dir, chart_config.filename)
     if not os.path.exists(chart_path):
@@ -111,7 +112,7 @@ def _add_chart(doc: Document, chart_dir: str, chart_config):
 # ---------------------------------------------------------------------------
 
 
-def _build_cover_page(doc: Document, summary: DataSummary):
+def _build_cover_page(doc: DocxDocument, summary: DataSummary):
     """Create a styled cover page."""
     doc.add_paragraph()
     doc.add_paragraph()
@@ -164,7 +165,7 @@ def _build_cover_page(doc: Document, summary: DataSummary):
     doc.add_page_break()
 
 
-def _build_metrics_table(doc: Document, stats):
+def _build_metrics_table(doc: DocxDocument, stats):
     """Build a table of key numeric statistics."""
     headers = ["Metric", "Mean", "Median", "Std Dev", "Min", "Max"]
     table = doc.add_table(rows=1 + len(stats), cols=6)
@@ -210,7 +211,7 @@ def _build_metrics_table(doc: Document, stats):
                 run.font.bold = True
 
 
-def _build_recommendations_table(doc: Document, recommendations):
+def _build_recommendations_table(doc: DocxDocument, recommendations):
     """Build a color-coded recommendations table."""
     headers = ["Priority", "Recommendation", "Category", "Expected Impact"]
     table = doc.add_table(rows=1 + len(recommendations), cols=4)
@@ -280,7 +281,7 @@ def _build_recommendations_table(doc: Document, recommendations):
         run.font.italic = True
 
 
-def _build_abc_table(doc: Document, analysis):
+def _build_abc_table(doc: DocxDocument, analysis):
     """Render one ABC analysis as a contributor table."""
     para = doc.add_paragraph()
     run = para.add_run(
@@ -319,7 +320,7 @@ def _build_abc_table(doc: Document, analysis):
     doc.add_paragraph()
 
 
-def _build_outlier_table(doc: Document, outliers):
+def _build_outlier_table(doc: DocxDocument, outliers):
     """Build a table of detected outliers."""
     if not outliers:
         doc.add_paragraph("No significant outliers detected.")

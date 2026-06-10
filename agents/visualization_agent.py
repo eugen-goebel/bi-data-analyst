@@ -237,7 +237,7 @@ class VisualizationAgent:
             fig, ax = plt.subplots(figsize=(8, 6))
             fig.patch.set_facecolor(BG_COLOR)
 
-            wedges, texts, autotexts = ax.pie(
+            wedges, texts, autotexts = ax.pie(  # type: ignore[misc]
                 grouped.values,
                 labels=grouped.index,
                 autopct="%1.1f%%",

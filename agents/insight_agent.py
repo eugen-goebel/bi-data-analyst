@@ -104,6 +104,8 @@ class InsightAgent:
             output_format=InsightResult,
         )
 
+        if response.parsed_output is None:
+            raise RuntimeError("The model response could not be parsed into an InsightResult")
         return response.parsed_output
 
     def _format_context(self, summary: DataSummary, patterns: PatternAnalysis) -> str:
