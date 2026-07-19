@@ -95,7 +95,7 @@ The report is saved to `./output/bi_report_<filename>_<date>.docx`.
 ## Testing
 
 ```bash
-# Run the full test suite (78 tests, no API key needed)
+# Run the full test suite (109 tests, no API key needed)
 python -m pytest tests/ -v
 ```
 
@@ -137,12 +137,14 @@ bi-data-analyst/
 ├── data/
 │   └── sample_sales.csv           # 192-row sample dataset
 ├── tests/
-│   ├── test_models.py             # Pydantic model tests (15 tests)
+│   ├── test_models.py             # Pydantic model tests (25 tests)
 │   ├── test_data_loader.py        # Data loading tests (11 tests)
-│   ├── test_pattern_agent.py      # Pattern detection tests (8 tests)
+│   ├── test_pattern_agent.py      # Pattern detection tests (17 tests)
 │   ├── test_visualization.py      # Chart generation tests (8 tests)
 │   ├── test_agents.py             # AI agent tests, mocked API (8 tests)
 │   ├── test_report_generator.py   # DOCX generation tests (12 tests)
+│   ├── test_csv_exporter.py       # CSV export tests (12 tests)
+│   ├── test_multi_sheet.py        # Multi-sheet Excel tests (10 tests)
 │   └── test_cli.py                # CLI integration tests (6 tests)
 ├── output/                        # Generated reports (git-ignored)
 ├── requirements.txt
@@ -161,7 +163,7 @@ bi-data-analyst/
 | Structured Outputs | Pydantic v2 + `messages.parse()` |
 | Report Generation | python-docx with `add_picture()` for chart embedding |
 | Excel Support | openpyxl |
-| Testing | pytest (78 tests) |
+| Testing | pytest (109 tests) |
 
 ---
 
