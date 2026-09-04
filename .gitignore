@@ -20,9 +20,13 @@ venv/
 Thumbs.db
 
 # Output
-output/*.docx
 
 # Coverage
 .coverage
 coverage.xml
 htmlcov/
+
+# Generated reports and exports. Every format the project can write,
+# not just the one that happened to be tested first.
+output/*
+!output/.gitkeep
