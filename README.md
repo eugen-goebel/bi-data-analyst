@@ -4,7 +4,6 @@ An AI-powered multi-agent system that transforms raw business data (CSV/Excel) i
 
 ![CI](https://github.com/eugen-goebel/bi-data-analyst/actions/workflows/tests.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
-![Tests](https://img.shields.io/badge/Tests-78_passed-brightgreen)
 ![pandas](https://img.shields.io/badge/pandas-2.0+-150458)
 ![matplotlib](https://img.shields.io/badge/matplotlib-3.7+-11557c)
 ![License](https://img.shields.io/badge/License-MIT-green)
